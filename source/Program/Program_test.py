@@ -9,12 +9,11 @@ def valid_properties():
     return {
         "count": 2,
         "auto_start": False,
-        "autorestart": AutoRestart.ALWAYS,
+        "auto_restart": "ALWAYS",
         "exit_code": 1,
-        "start_time": datetime.now(),
         "max_retry": 3,
-        "stop_signal": Signals.HUP,
-        "stop_time": datetime.now(),
+        "stop_signal": "HUP",
+        "stop_time": "00:00:00 20-09-2055",
         "cmd": "echo 'Hello, World!'",
         "working_dir": "/path/to/working_dir",
         "stdout": "stdout.log",
@@ -27,7 +26,7 @@ def test_valid_initialization(valid_properties):
     program = Program("TestProgram", valid_properties)
     assert program.count == 2
     assert not program.auto_start
-    assert program.autorestart == AutoRestart.ALWAYS
+    assert program.auto_restart == AutoRestart.ALWAYS
     assert program.exit_code == 1
     assert isinstance(program.start_time, datetime)
     assert program.max_retry == 3

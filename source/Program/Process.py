@@ -1,48 +1,31 @@
 import os
-from source.enums import ProcessStatus
-import datetime
 import subprocess
+import datetime
 
 
 class Process:
-    """
-    A process is an instance of a program.
-
-    This is a wrapper over a python popen object :
-    https://docs.python.org/2/library/subprocess.html#popen-objects
-    """
-
-    popen = None
-    kill_by_user = False
-
-    def __init__(self, name, cmd):
-        self.cmd = cmd
+    def __init__(self, name, cmd, start_date, end_date):
         self.name = name
+        self.cmd = cmd
         self.nb_start_retries = 0
+        self.popen = None
+        self.kill_by_user = False
+        self.start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+        self.end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+        self.starttime = None
+        self.closetime = None
 
     def open_standard_files(self, file_name):
-        if file_name == None:
-            return
+        if file_name is None:
+            return None
         try:
-            fd = open(file_name, "a")
-            return fd
+            return open(file_name, "a")
         except Exception as e:
-            print(
-                "Stantard file for {0} can't be open because {1}.".format(self.name, e)
-            )
+            print(f"Standard file for {self.name} can't be opened because {e}.")
             return None
 
-    def set_execution_vars(self, stdout, stderr, nenv, workingdir, umask):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.env = nenv
-        self.workingdir = workingdir
-        self.umask = umask
-
     def execute(self):
-        """Require that set_execution_vars has already been called"""
         self.nb_start_retries += 1
-        kill_by_user = False
         try:
             stdoutf = self.open_standard_files(self.stdout)
             stderrf = self.open_standard_files(self.stderr)
@@ -58,89 +41,57 @@ class Process:
             self.starttime = datetime.datetime.now()
             self.closetime = None
         except Exception as e:
-            print("Can't launch process {0} because {1}.".format(self.name, e))
+            print(f"Can't launch process {self.name} because {e}.")
 
     def return_code_is_allowed(self, rc, exitcodes):
-        # if exitcodes is only one code
-        # print(exitcodes, " ==? ", rc, " => ", rc == exitcodes)
-        if not type(exitcodes) is list:
+        if not isinstance(exitcodes, list):
             return rc == exitcodes
-        # if exitcodes is a list of exitcode
-        for ec in exitcodes:
-            if ec == rc:
-                return True
-        return False
+        return rc in exitcodes
 
     def lived_enough(self, starttime):
-        """Return true if the progs lifetime was too short."""
-        # The program wasn't started/killed at all
-        if (
-            not hasattr(self, "starttime")
-            or not hasattr(self, "closetime")
-            or not starttime
-        ):
+        if not starttime or not self.starttime or not self.closetime:
             return True
-        # Test program lifetime
         td = datetime.timedelta(seconds=starttime)
-        if (self.closetime - self.starttime) <= td:
-            return False
-        return True
+        return (self.closetime - self.starttime) <= td
 
-    def restart_if_needed(self, autorestart, exitcodes, startretries, starttime, rv):
-        """Test if need restart"""
-        # test if var allow restart
+    def restart_if_needed(self, autorestart, exitcodes, startretries):
         if self.nb_start_retries > startretries or self.kill_by_user:
             return False
         if autorestart == AutoRestartEnum.never or startretries < 1:
             return
-        # print("##", self.name, " return_code_is_allowed ", self.return_code_is_allowed(rv, exitcodes))
-        # print("##", self.name, " lived_enough ", not self.lived_enough(starttime))
         if (
             autorestart == AutoRestartEnum.unexpected
-            and self.return_code_is_allowed(rv, exitcodes)
+            and self.return_code_is_allowed(self.popen.poll(), exitcodes)
             and self.lived_enough(starttime)
         ):
             return False
-        # print("execute")
         self.execute()
 
     def force_kill_if_needed(self, stoptime):
-        if not hasattr(self, "closetime") or self.closetime == None:
-            return
         if (
-            not Process.check_pid_is_alive(self.popen.pid)
-            or not hasattr(self, "closetime")
-            or self.closetime == None
-            or stoptime == None
+            not self.popen
+            or not self.closetime
+            or not Process.check_pid_is_alive(self.popen.pid)
+            or not stoptime
         ):
             return
         diff = datetime.datetime.now() - self.closetime
         if diff > datetime.timedelta(seconds=stoptime):
-            logger.log("force kill of process for prog " + self.name)
+            print(f"Forced kill of process for program {self.name}")
             os.kill(self.popen.pid, 9)
 
     def check(self, autorestart, exitcodes, startretries, starttime, stoptime):
-        """Require that set_execution_vars has already been called"""
         if not self.popen:
             return False
         rv = self.popen.poll()
-        # test if force kill needed
         self.force_kill_if_needed(stoptime)
-        # if program returned
-        if rv != None:
-            # test if process recently quitted
-            if not hasattr(self, "closetime") or not self.closetime:
+        if rv is not None:
+            if not self.closetime:
                 self.closetime = datetime.datetime.now()
-                logger.log(
-                    "process in prog "
-                    + self.name
-                    + " has stop, return code : "
-                    + str(rv)
-                )
+                print(f"Process in program {self.name} has stopped, return code: {rv}")
+            self.restart_if_needed(autorestart, exitcodes, startretries)
 
-            # restart if needed
-            self.restart_if_needed(autorestart, exitcodes, startretries, starttime, rv)
-
+    @staticmethod
     def check_pid_is_alive(pid):
         try:
             os.kill(pid, 0)
@@ -150,17 +101,17 @@ class Process:
             return True
 
     def kill(self, stopsignal):
-        self._kill_by_user = True
+        self.kill_by_user = True
         if self.popen and not self.popen.poll():
             if Process.check_pid_is_alive(self.popen.pid):
                 os.kill(self.popen.pid, stopsignal)
-                logger.log(f"process in prog {self.name} has been killed")
+                print(f"Process in program {self.name} has been killed")
                 self.closetime = datetime.datetime.now()
 
     def update_status(self, exitcodes):
         if not self.popen:
             return ProcessStatus.NOT_LAUNCH
-        if self.popen.poll() == None:
+        if self.popen.poll() is None:
             return ProcessStatus.RUNNING
         if self.return_code_is_allowed(self.popen.poll(), exitcodes):
             return ProcessStatus.STOP_OK
