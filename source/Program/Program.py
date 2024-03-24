@@ -1,7 +1,9 @@
 import os
 from typing import Dict, List, Optional, Any
-from enums import Signals, AutoRestart
+from source.enums import Signals, AutoRestart
 import subprocess
+import datetime
+
 
 class Process:
     _retry_count: int = 0
@@ -25,27 +27,38 @@ class Process:
 
 class Program:
 
-    _name:str = None
-    count:int = 1
-    auto_start:bool = True
-    autorestart: AutoRestart = AutoRestart.UNEXPECTED
-    exit_code = os.EX_OK
-    start_time = None
-    max_retry = 0
-    stop_signal = Signals.TERM
-    stop_time = None
-    cmd = None
-    working_dir = None
-    stdout = None
-    stderr = None
-    umask = 22
+    _name: str = ""
     _processes: Optional[Process] = None
 
+    count: int = 1
+    auto_start: bool = True
+    autorestart: AutoRestart = AutoRestart.UNEXPECTED
+    exit_code: int = os.EX_OK
+    start_time: datetime.datetime = datetime.datetime.now()
+    max_retry: int = 0
+    stop_signal: Signals = Signals.TERM
+    stop_time: datetime.datetime = datetime.datetime.now()
+    cmd: str = ""
+    working_dir: Optional[str] = ""
+    stdout: str = ""
+    stderr: str = ""
+    umask: int = 22
+
     def __init__(self, process_name: str, properties: Dict[str, Any]):
-		
         self._name = process_name
         for k, v in properties.items():
-            if k in self.__dict__.keys() and isinstance(type(k)):
+            program_attribute = getattr(self, k, None)
+            if program_attribute == None or k[0] == "_":
+                continue
+            if isinstance(v, type(program_attribute)):
                 setattr(self, k, v)
+            else:
+                raise TypeError(
+                    f"Invalid type for attribute {k} in TestProgram. Expected {type(program_attribute)}, got {type(k)}"
+                )
         if not self.cmd:
             raise ValueError(f"Program {self._name} has no cmd attribute")
+
+
+if __name__ == "__init__":
+    Program("hehe", {"cmd": "hehe"})
