@@ -1,17 +1,19 @@
 import os
 import subprocess
 import datetime
+from source.enums import Signals, AutoRestart
+from logging import log
 
 
 class Process:
-    def __init__(self, name, cmd, start_date, end_date):
+    def __init__(self, name, cmd, start_time, end_time):
         self.name = name
         self.cmd = cmd
         self.nb_start_retries = 0
         self.popen = None
         self.kill_by_user = False
-        self.start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
-        self.end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+        self.start_time = start_time
+        self.end_time = end_time
         self.starttime = None
         self.closetime = None
 
@@ -57,10 +59,10 @@ class Process:
     def restart_if_needed(self, autorestart, exitcodes, startretries):
         if self.nb_start_retries > startretries or self.kill_by_user:
             return False
-        if autorestart == AutoRestartEnum.never or startretries < 1:
+        if autorestart == AutoRestart.NEVER or startretries < 1:
             return
         if (
-            autorestart == AutoRestartEnum.unexpected
+            autorestart == AutoRestart.UNEXPECTED
             and self.return_code_is_allowed(self.popen.poll(), exitcodes)
             and self.lived_enough(starttime)
         ):
@@ -77,10 +79,9 @@ class Process:
             return
         diff = datetime.datetime.now() - self.closetime
         if diff > datetime.timedelta(seconds=stoptime):
-            print(f"Forced kill of process for program {self.name}")
             os.kill(self.popen.pid, 9)
 
-    def check(self, autorestart, exitcodes, startretries, starttime, stoptime):
+    def check(self, autorestart, exitcodes, startretries, stoptime):
         if not self.popen:
             return False
         rv = self.popen.poll()
@@ -110,10 +111,10 @@ class Process:
 
     def update_status(self, exitcodes):
         if not self.popen:
-            return ProcessStatus.NOT_LAUNCH
+            return Process.NOT_LAUNCH
         if self.popen.poll() is None:
-            return ProcessStatus.RUNNING
+            return Process.RUNNING
         if self.return_code_is_allowed(self.popen.poll(), exitcodes):
-            return ProcessStatus.STOP_OK
+            return Process.STOP_OK
         else:
-            return ProcessStatus.STOP_KO
+            return Process.STOP_KO
