@@ -1,0 +1,24 @@
+a1:
+    cmd: "./a.out 100"
+    count: 5
+    umask: 022
+    working_dir: /tmp
+    auto_start: true
+    auto_restart: never
+    exit_code: 1
+    startretries: 3
+    start_time: 5
+    stop_time: 10
+    stop_signal: TERM
+a2:
+    cmd: "./a.out 10"
+    count: 2
+    umask: 022
+    working_dir: /tmp
+    auto_start: true
+    auto_restart: always
+    exit_code: 1
+    startretries: 3
+    start_time: 5
+    stop_time: 10
+    stop_signal: TERM
