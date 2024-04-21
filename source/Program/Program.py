@@ -183,9 +183,10 @@ class Program:
             raise ValueError(f"Env variable should be a dictionary, got {type(value)}")
         for k, v in value.items():
             try:
-                self.env[k] = str(k)
+                self.env[k] = str(v)
             except:
                 raise ValueError(f"Invalid type for env variable {k}.")
+        return self.env
 
     def _validate_values(self, name, value):
         if name == "start_time" or name == "stop_time":
