@@ -2,7 +2,7 @@ a1:
     cmd: "./a.out 60"
     count: 5
     umask: 022
-    working_dir: /tmp
+    working_dir: ./
     auto_start: true
     auto_restart: unexpected
     exit_codes: [0, 2]
@@ -14,7 +14,7 @@ a2:
     cmd: "./a.out 10"
     count: 2
     umask: 022
-    working_dir: /tmp
+    working_dir: ./
     auto_start: true
     auto_restart: always
     exit_codes: [0]

@@ -33,13 +33,32 @@ class Process:
         self.cwd = workingdir
         self.umask = umask
 
+    def open_standard_files(self, file_name):
+        if not file_name:
+            return None
+        try:
+            return open(file_name, "a")
+        except Exception as e:
+            print(f"Standard file for {self.name} can't be opened because {e}.")
+            return None
+
     def execute(self):
         if self.is_running():
             log.log(f"cannot start an already running process [pid:{self.popen.pid}]")
             return
         try:
+            stdoutf = self.open_standard_files(self.stdout)
+            stderrf = self.open_standard_files(self.stderr)
             self.kill_by_user = False
-            self.popen = subprocess.Popen(self.command, shell=True)
+            self.popen = subprocess.Popen(
+                self.command,
+                shell=True,
+                stdout=stdoutf,
+                stderr=stderrf,
+                umask=self.umask,
+                env=self.env,
+                cwd=self.cwd,
+            )
             if self.is_running():
                 self.launched = True
                 self.start_time = datetime.datetime.now()
@@ -64,17 +83,21 @@ class Process:
             return self.end_time - self.start_time
         return self.end_time - self.start_time
 
-    def check(self, auto_restart, stop_time, exit_codes):
+    def check(self, auto_restart, stop_time, exit_codes, starttime, retries):
         if self.launched:
             if self.exit_status() != None and self.end_time == None:
                 self.end_time = datetime.datetime.now()
 
         # Force kill if stop time is passed or max retries are consumed.
         self.ensure_force_kill(stop_time)
-        self.ensure_restart(auto_restart, exit_codes)
+        self.ensure_restart(auto_restart, exit_codes, retries)
 
-    def ensure_restart(self, auto_restart, exit_codes):
-        if auto_restart == AutoRestart.NEVER or self.kill_by_user:
+    def ensure_restart(self, auto_restart, exit_codes, retries):
+        if (
+            auto_restart == AutoRestart.NEVER
+            or self.retries > retries
+            or self.kill_by_user
+        ):
             return
         if auto_restart == AutoRestart.UNEXPECTED and self.exit_status() in exit_codes:
             return
@@ -113,7 +136,7 @@ class Program:
     auto_restart: AutoRestart = AutoRestart.UNEXPECTED
     exit_codes: int = [os.EX_OK]
     start_time: int = 0
-    max_retry: int = 0
+    retries: int = 0
     stop_signal: Signals = Signals.TERM
     stop_time: int = 0
     cmd: str = ""
@@ -121,14 +144,17 @@ class Program:
     stdout: str = ""
     stderr: str = ""
     umask: int = 22
+    processes: List[Process] = []
+    env: Dict[str, str] = {}
 
     def __init__(self, name: str, properties: Dict[str, Any]):
         print(f"Creating program: {name}")
         self.name = name
+        self.processes = []
+        self.env = {}
         self._parse_properties(properties=properties)
         if not self.cmd:
             raise ValueError(f"Program {self.name} has no cmd attribute")
-        self.processes = []
         for _ in range(self.count):
             self.processes.append(Process(self.name, self.cmd))
         print(f"Created program: {name} {len(self.processes)}")
@@ -138,7 +164,6 @@ class Program:
             program_attribute = getattr(self, k, None)
             if program_attribute == None or k[0] == "_":
                 continue
-            # setattr(self, k, v)
             value = self._validate_values(k, v)
             if isinstance(value, type(program_attribute)):
                 setattr(self, k, value)
@@ -146,6 +171,21 @@ class Program:
                 raise TypeError(
                     f"Invalid type for attribute {k} in {self.name}. Expected {type(program_attribute)}, got {type(k)}"
                 )
+
+    def _get_expanded_env(self):
+        new_env = os.environ
+        for k, v in self.env.items():
+            new_env.update(k, str(v))
+        return new_env
+
+    def _validate_env(self, value: Dict[str, Any]):
+        if not isinstance(value, dict):
+            raise ValueError(f"Env variable should be a dictionary, got {type(value)}")
+        for k, v in value.items():
+            try:
+                self.env[k] = str(k)
+            except:
+                raise ValueError(f"Invalid type for env variable {k}.")
 
     def _validate_values(self, name, value):
         if name == "start_time" or name == "stop_time":
@@ -156,6 +196,8 @@ class Program:
             return self._validate_auto_restart(value)
         if name == "stop_signal":
             return self._validate_stop_signal(value)
+        if name == "env":
+            return self._validate_env(value)
         return value
 
     def _validate_time(self, value):
@@ -183,7 +225,15 @@ class Program:
 
     def execute(self):
         log.log(f"execute program: {self.name}")
+        execute_env = self._get_expanded_env()
         for process in self.processes:
+            process.set_popen_args(
+                stdout=self.stdout,
+                stderr=self.stderr,
+                env=execute_env,
+                umask=self.umask,
+                workingdir=self.working_dir,
+            )
             process.execute()
 
     def status(self):
@@ -237,5 +287,10 @@ class Program:
 
     def check(self):
         for process in self.processes:
-            process.check(self.auto_restart, self.stop_time, self.exit_codes)
-            # process.check(self.auto_restart, self.exit_code, self.max_retries, self.start_time, self.stop_time)
+            process.check(
+                auto_restart=self.auto_restart,
+                stop_time=self.stop_time,
+                exit_codes=self.exit_codes,
+                starttime=self.start_time,
+                retries=self.retries,
+            )

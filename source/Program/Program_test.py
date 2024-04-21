@@ -29,7 +29,7 @@ def test_valid_initialization(valid_properties):
     assert program.auto_restart == AutoRestart.ALWAYS
     assert program.exit_code == 1
     assert isinstance(program.start_time, datetime)
-    assert program.max_retry == 3
+    assert program.retries == 3
     assert program.stop_signal == Signals.HUP
     assert isinstance(program.stop_time, datetime)
     assert program.cmd == "echo 'Hello, World!'"
