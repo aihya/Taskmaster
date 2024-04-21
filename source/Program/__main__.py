@@ -1,9 +1,10 @@
-#from program.Programs import Programs
+# from program.Programs import Programs
 import threading
 import interface
 import time
 import log
 from Programs import Programs
+
 
 def check_programs(thread_lock, programs):
     """
@@ -14,7 +15,7 @@ def check_programs(thread_lock, programs):
     """
     while True:
         thread_lock.acquire(True)
-        for program in programs.programs:
+        for program in programs.programs():
             program.check()
         thread_lock.release()
         time.sleep(0.1)
@@ -23,7 +24,6 @@ def check_programs(thread_lock, programs):
 if __name__ == "__main__":
 
     lock = threading.Lock()
-
 
     # Creates Programs instance for parsing the YAML file and reading the programs.
     programs = Programs()

@@ -253,6 +253,7 @@ class Program:
             process.execute()
 
     def execute(self):
+        print(self.processes)
         self.execute_processes(self.processes)
 
     def status(self):
@@ -323,6 +324,7 @@ class Program:
                 getattr(self, k, None) is not None
                 and (k not in self.config.keys() or self.config[k] != new_config[k])
                 for k, _ in new_config.items()
+                if k != "count"
             ]
         )
 
@@ -331,6 +333,7 @@ class Program:
 
     def reload(self):
         newps = []
+        print(len(self.processes), self.count)
         if len(self.processes) == self.count:
             return
         if len(self.processes) < self.count:
