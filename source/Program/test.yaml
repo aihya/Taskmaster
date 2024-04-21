@@ -1,24 +1,30 @@
 a1:
     cmd: "./a.out 60"
-    count: 5
+    count: 1
     umask: 022
     working_dir: ./
     auto_start: true
     auto_restart: unexpected
     exit_codes: [0, 2]
-    startretries: 3
+    retries: 0
     start_time: 5
     stop_time: 10
     stop_signal: TERM
+    stdout: mok.txt
+    stderr: mok.txt
+    env:
+      env1: val1
 a2:
     cmd: "./a.out 10"
-    count: 2
+    count: 1
     umask: 022
     working_dir: ./
     auto_start: true
     auto_restart: always
     exit_codes: [0]
-    startretries: 3
+    retries: 0
     start_time: 5
     stop_time: 10
     stop_signal: TERM
+    stdout: mok.txt
+    stderr: mok.txt

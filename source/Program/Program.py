@@ -49,7 +49,9 @@ class Process:
         try:
             stdoutf = self.open_standard_files(self.stdout)
             stderrf = self.open_standard_files(self.stderr)
+            print(stdoutf, stderrf)
             self.kill_by_user = False
+            self.retries += 1
             self.popen = subprocess.Popen(
                 self.command,
                 shell=True,
@@ -80,6 +82,7 @@ class Process:
         if self.launched:
             if self.is_running():
                 return datetime.datetime.now() - self.start_time
+        print(self.popen.poll())
             return self.end_time - self.start_time
         return self.end_time - self.start_time
 
@@ -175,7 +178,7 @@ class Program:
     def _get_expanded_env(self):
         new_env = os.environ
         for k, v in self.env.items():
-            new_env.update(k, str(v))
+            new_env.update({k: str(v)})
         return new_env
 
     def _validate_env(self, value: Dict[str, Any]):
@@ -227,6 +230,7 @@ class Program:
     def execute(self):
         log.log(f"execute program: {self.name}")
         execute_env = self._get_expanded_env()
+        print(self.name, self.env)
         for process in self.processes:
             process.set_popen_args(
                 stdout=self.stdout,
@@ -269,9 +273,8 @@ class Program:
                     print(f" \033[32msuccess\033[0m ({process.elapsed_time()})", end="")
                 elif process.exit_status():
                     exit_status = process.exit_status()
-                    string = str(signal.Signals(abs(exit_status))).split(".")[-1]
                     print(
-                        f" \033[31mfailed\033[0m [code:{exit_status}({string})] ({process.elapsed_time()})",
+                        f" \033[31mfailed\033[0m [code:{exit_status}] ({process.elapsed_time()})",
                         end="",
                     )
                 print()
