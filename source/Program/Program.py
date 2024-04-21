@@ -47,6 +47,7 @@ class Process:
             log.log(f"cannot start an already running process [pid:{self.popen.pid}]")
             return
         try:
+            print("Waaaaa akhona")
             stdoutf = self.open_standard_files(self.stdout)
             stderrf = self.open_standard_files(self.stderr)
             print(stdoutf, stderrf)
@@ -103,7 +104,8 @@ class Process:
             return
         if auto_restart == AutoRestart.UNEXPECTED and self.exit_status() in exit_codes:
             return
-        self.execute()
+        if self.exit_status() is not None:
+            self.execute()
 
     def ensure_force_kill(self, stop_time):
         if self.popen == None:
@@ -148,18 +150,35 @@ class Program:
     umask: int = 22
     processes: List[Process] = []
     env: Dict[str, str] = {}
+    config: Dict[str, any] = {}
 
     def __init__(self, name: str, properties: Dict[str, Any]):
         print(f"Creating program: {name}")
         self.name = name
         self.processes = []
         self.env = {}
+        self.config = properties
         self._parse_properties(properties=properties)
+        self.env = self._get_expanded_env()
         if not self.cmd:
             raise ValueError(f"Program {self.name} has no cmd attribute")
-        for _ in range(self.count):
-            self.processes.append(Process(self.name, self.cmd))
+        self._create_processes(self.count)
         print(f"Created program: {name} {len(self.processes)}")
+
+    def _create_processes(self, count):
+        procces_list = []
+        print("create processes: ", count)
+        for _ in range(0, count):
+            procces_list.append(Process(self.name, self.cmd))
+        self.processes = procces_list
+
+    def _validate_type(self, value, attribute_name, attribute_type):
+        if isinstance(value, attribute_type):
+            setattr(self, attribute_name, value)
+        else:
+            raise TypeError(
+                f"Invalid type for attribute {attribute_name} in {self.name}. Expected {attribute_type}, got {type(value)}"
+            )
 
     def _parse_properties(self, properties: Dict[str, Any]):
         for k, v in properties.items():
@@ -167,12 +186,7 @@ class Program:
             if program_attribute is None or v is None or k[0] == "_":
                 continue
             value = self._validate_values(k, v)
-            if isinstance(value, type(program_attribute)):
-                setattr(self, k, value)
-            else:
-                raise TypeError(
-                    f"Invalid type for attribute {k} in {self.name}. Expected {type(program_attribute)}, got {type(k)}"
-                )
+            self._validate_type(value, k, type(program_attribute))
 
     def _get_expanded_env(self):
         new_env = os.environ
@@ -226,19 +240,20 @@ class Program:
     def _validate_stop_signal(self, value):
         return Signals.from_str(value)
 
-    def execute(self):
-        log.log(f"execute program: {self.name}")
-        execute_env = self._get_expanded_env()
-        print(self.name, self.env)
-        for process in self.processes:
+    def execute_processes(self, processes):
+        print(processes)
+        for process in processes:
             process.set_popen_args(
                 stdout=self.stdout,
                 stderr=self.stderr,
-                env=execute_env,
+                env=self.env,
                 umask=self.umask,
                 workingdir=self.working_dir,
             )
             process.execute()
+
+    def execute(self):
+        self.execute_processes(self.processes)
 
     def status(self):
         if not self.processes:
@@ -255,7 +270,7 @@ class Program:
                 o = o + 1 if process.exit_status() == 0 else o
                 k = k + 1 if process.exit_status() else k
         print(
-                f"program: {self.name}\n↳ launched: {l}, running: {r}, success: {o}, failed: {k}, stopped: {s}"
+            f"program: {self.name}\n↳ launched: {l}, running: {r}, success: {o}, failed: {k}, stopped: {s}"
         )
         return len(self.processes)
 
@@ -302,36 +317,32 @@ class Program:
                 retries=self.retries,
             )
 
-    def reload_has_substantive_change(self, nprog):
-        if self.cmd != nprog.cmd or \
-				self.stdout != nprog.stdout or \
-				self.stderr != nprog.stderr or \
-				self.env != nprog.env or \
-				self.working_dir != nprog.working_dir or \
-				self.umask != nprog.umask or \
-                self.auto_start != nprog.auto_start or \
-                self.auto_restart != nprog.auto_restart or \
-                self.stop_time != nprog.stop_time or \
-                self.stop_signal != nprog.stop_signal or \
-                self.start_time != nprog.start_time or \
-                self.retries != nprog.retries or \
-                self.exit_codes != nprog.exit_codes:
-            return True
-        return False
+    def reload_has_substantive_change(self, new_config):
+        return any(
+            [
+                getattr(self, k, None) is not None
+                and (k not in self.config.keys() or self.config[k] != new_config[k])
+                for k, _ in new_config.items()
+            ]
+        )
 
     def assign_count(self, count):
-        if isinstance(count, type(self.count)):
-            print(f'new count for {self.name}:{count}')
-            self.count = count
-            print(self.count)
+        self._validate_type(count, "count", type(count))
 
     def reload(self):
         newps = []
+        if len(self.processes) == self.count:
+            return
         if len(self.processes) < self.count:
             for x in range(0, (self.count - len(self.processes))):
                 newp = Process(self.name, self.cmd)
                 self.processes.append(newp)
                 newps.append(newp)
+        else:
+            del self.processes
+            self._create_processes(self.count)
+            self.execute()
+            return
+
         if self.auto_start:
-            for prog in newps:
-                prog.execute()
+            self.execute_processes(newps)
