@@ -1,11 +1,11 @@
 a1:
-    cmd: "./a.out 100"
+    cmd: "./a.out 60"
     count: 5
     umask: 022
     working_dir: /tmp
     auto_start: true
-    auto_restart: never
-    exit_code: 1
+    auto_restart: unexpected
+    exit_codes: [0, 2]
     startretries: 3
     start_time: 5
     stop_time: 10
@@ -17,7 +17,7 @@ a2:
     working_dir: /tmp
     auto_start: true
     auto_restart: always
-    exit_code: 1
+    exit_codes: [0]
     startretries: 3
     start_time: 5
     stop_time: 10
