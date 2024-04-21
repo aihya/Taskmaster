@@ -19,6 +19,7 @@ class Process:
         self.launched = False
         self.start_time = 0
         self.end_time = None
+        self.kill_by_user = False
 
     def is_running(self):
         if self.popen:
@@ -37,6 +38,7 @@ class Process:
             log.log(f"cannot start an already running process [pid:{self.popen.pid}]")
             return
         try:
+            self.kill_by_user = False
             self.popen = subprocess.Popen(self.command, shell=True)
             if self.is_running():
                 self.launched = True
@@ -62,17 +64,19 @@ class Process:
             return self.end_time - self.start_time
         return self.end_time - self.start_time
 
-    def check(self, auto_restart, stop_time):
+    def check(self, auto_restart, stop_time, exit_codes):
         if self.launched:
             if self.exit_status() != None and self.end_time == None:
                 self.end_time = datetime.datetime.now()
 
         # Force kill if stop time is passed or max retries are consumed.
         self.ensure_force_kill(stop_time)
-        self.ensure_restart(auto_restart)
+        self.ensure_restart(auto_restart, exit_codes)
 
-    def ensure_restart(self, auto_restart):
-        if auto_restart == AutoRestart.NEVER:
+    def ensure_restart(self, auto_restart, exit_codes):
+        if auto_restart == AutoRestart.NEVER or self.kill_by_user:
+            return
+        if auto_restart == AutoRestart.UNEXPECTED and self.exit_status() in exit_codes:
             return
         self.execute()
 
@@ -86,6 +90,7 @@ class Process:
                 self.popen.kill()
 
     def kill(self, stop_signal):
+        self.kill_by_user = True
         if self.is_running():
             log.log(f"kill process [pid:{self.popen.pid}]")
             os.kill(self.popen.pid, stop_signal)
@@ -95,7 +100,7 @@ class Process:
             return False
 
     def restart(self):
-        if self.kill() or self.launched:
+        if self.kill(signal.SIGKILL) or self.launched:
             self.execute()
 
 
@@ -106,7 +111,7 @@ class Program:
     count: int = 1
     auto_start: bool = True
     auto_restart: AutoRestart = AutoRestart.UNEXPECTED
-    exit_code: int = [os.EX_OK]
+    exit_codes: int = [os.EX_OK]
     start_time: int = 0
     max_retry: int = 0
     stop_signal: Signals = Signals.TERM
@@ -146,7 +151,7 @@ class Program:
         if name == "start_time" or name == "stop_time":
             return self._validate_time(value)
         if name == "exit_code":
-            return self._validate_exit_code(value)
+            return self._validate_exit_codes(value)
         if name == "auto_restart":
             return self._validate_auto_restart(value)
         if name == "stop_signal":
@@ -159,15 +164,9 @@ class Program:
         except:
             raise ValueError(f"Invalid time format, expected int.")
 
-    def _validate_exit_code(self, value):
-        if isinstance(value, int):
-            return
-        else:
-            raise ValueError("Date must be a number.")
-
-    def _validate_exit_code(self, values):
+    def _validate_exit_codes(self, values):
         value_list = []
-        if not isinstance(value, list):
+        if not isinstance(values, list):
             raise ValueError("Exit code should be a valid list")
         for value in values:
             if isinstance(value, int):
@@ -238,5 +237,5 @@ class Program:
 
     def check(self):
         for process in self.processes:
-            process.check(self.auto_restart, self.stop_time)
+            process.check(self.auto_restart, self.stop_time, self.exit_codes)
             # process.check(self.auto_restart, self.exit_code, self.max_retries, self.start_time, self.stop_time)
