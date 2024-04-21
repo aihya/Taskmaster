@@ -102,7 +102,9 @@ class Interface(cmd.Cmd):
         self.lock.release()
 
     def do_reload(self, args):
-        pass
+        self.lock.acquire(True)
+        self.programs.reload()
+        self.lock.release()
 
     def do_log(self, args):
         self.lock.acquire(True)

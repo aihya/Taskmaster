@@ -7,8 +7,7 @@ int main(int argc, char **argv, char** envp)
 {
 	int i = 0;
 	int j = atoi(argv[1]);
-	for (char **p = envp; p; p++)
-		write(1, *p, strlen(*p));
+	printf("Hello world\n");
 	while (i < j)
 	{
 		sleep(1);

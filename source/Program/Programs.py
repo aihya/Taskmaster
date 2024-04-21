@@ -10,18 +10,13 @@ def load_config_file():
         print("Usage: ./taskmaster conf.yaml")
         exit(os.EX_OK)
 
-    programs = []
     try:
         with open(files[0], 'r') as stream:
-            programs.append(yaml.safe_load(stream))
+            return yaml.safe_load(stream)
     except FileNotFoundError:
-        print(f'Configuration file ({files[0]}) not found')
-        exit(os.EX_OK)
+        ValueError(f'Configuration file ({files[0]}) not found')
     except Exception as E:
-        print(f'Can\'t parse configuration file ({files[0]}) due to:\n{E}')
-        exit(os.EX_OK)
-
-    return programs
+        ValueError(f'Can\'t parse configuration file ({files[0]}) due to:\n{E}')
 
 class Programs:
 
@@ -30,15 +25,35 @@ class Programs:
         self.names = set()
 
     def load(self):
-        configs = load_config_file()
-        print(configs)
-        for config in configs:
-            for name, properties in config.items():
-                self.programs.append(Program(name, properties))
-                self.names.add(name)
+        confs = self.load_conf()
+        if not confs:
+            exit(os.EX_OK)
+        for name, properties in confs.items():
+            self.programs.append(Program(name, properties))
+
+    def load_conf(self, init=True):
+        try:
+            return load_config_file()
+        except Exception as e:
+            print(f'{str(e)}')
 
     def reload(self):
-        pass
+        confs = self.load_conf()
+        print(confs)
+        if not confs:
+            return
+        for name, properties in confs.items():
+            new_program = Program(name, properties)
+            for index, value in enumerate(self.programs):
+                if name == value.name and value.reload_has_substantive_change(new_program):
+                    print('etto 1')
+                    # del self.programs[index]
+                    self.programs.insert(index, new_program) 
+                    self.programs[index].execute()
+                elif name == value.name and isinstance(new_program.count, type(self.programs[index].count)) and new_program.count != self.programs[index].count:
+                    print('etto 2')
+                    value.assign_count(properties["count"])
+                    value.reload()
 
     def status(self):
         for program in self.programs:

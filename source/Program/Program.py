@@ -82,7 +82,6 @@ class Process:
         if self.launched:
             if self.is_running():
                 return datetime.datetime.now() - self.start_time
-        print(self.popen.poll())
             return self.end_time - self.start_time
         return self.end_time - self.start_time
 
@@ -165,7 +164,7 @@ class Program:
     def _parse_properties(self, properties: Dict[str, Any]):
         for k, v in properties.items():
             program_attribute = getattr(self, k, None)
-            if program_attribute == None or k[0] == "_":
+            if program_attribute is None or v is None or k[0] == "_":
                 continue
             value = self._validate_values(k, v)
             if isinstance(value, type(program_attribute)):
@@ -244,17 +243,19 @@ class Program:
     def status(self):
         if not self.processes:
             return "No processes created."
-        r, o, k, l = 0, 0, 0, 0
+        r, o, k, l, s = 0, 0, 0, 0, 0
         for process in self.processes:
             if process.launched:
                 l += 1
             if process.is_running():
                 r += 1
-            if process.exit_status() is not None:
+            if process.kill_by_user:
+                s += 1
+            elif process.exit_status() is not None:
                 o = o + 1 if process.exit_status() == 0 else o
                 k = k + 1 if process.exit_status() else k
         print(
-            f"program: {self.name}\n↳ launched: {l}, running: {r}, success: {o}, failed: {k}"
+                f"program: {self.name}\n↳ launched: {l}, running: {r}, success: {o}, failed: {k}, stopped: {s}"
         )
         return len(self.processes)
 
@@ -271,6 +272,8 @@ class Program:
                     print(f" \033[33mrunning\033[0m ({process.elapsed_time()})", end="")
                 elif process.exit_status() == 0:
                     print(f" \033[32msuccess\033[0m ({process.elapsed_time()})", end="")
+                elif process.kill_by_user:
+                    print(f" \033[34mstopped\033[0m ({process.elapsed_time()})", end="")
                 elif process.exit_status():
                     exit_status = process.exit_status()
                     print(
@@ -298,3 +301,37 @@ class Program:
                 starttime=self.start_time,
                 retries=self.retries,
             )
+
+    def reload_has_substantive_change(self, nprog):
+        if self.cmd != nprog.cmd or \
+				self.stdout != nprog.stdout or \
+				self.stderr != nprog.stderr or \
+				self.env != nprog.env or \
+				self.working_dir != nprog.working_dir or \
+				self.umask != nprog.umask or \
+                self.auto_start != nprog.auto_start or \
+                self.auto_restart != nprog.auto_restart or \
+                self.stop_time != nprog.stop_time or \
+                self.stop_signal != nprog.stop_signal or \
+                self.start_time != nprog.start_time or \
+                self.retries != nprog.retries or \
+                self.exit_codes != nprog.exit_codes:
+            return True
+        return False
+
+    def assign_count(self, count):
+        if isinstance(count, type(self.count)):
+            print(f'new count for {self.name}:{count}')
+            self.count = count
+            print(self.count)
+
+    def reload(self):
+        newps = []
+        if len(self.processes) < self.count:
+            for x in range(0, (self.count - len(self.processes))):
+                newp = Process(self.name, self.cmd)
+                self.processes.append(newp)
+                newps.append(newp)
+        if self.auto_start:
+            for prog in newps:
+                prog.execute()
