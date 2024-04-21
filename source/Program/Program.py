@@ -36,7 +36,6 @@ class Process:
             log.log(f'cannot start an already running process [pid:{self.popen.pid}]')
             return
         try:
-            print(f'executed command {self.command}')
             self.popen = subprocess.Popen(self.command, shell=True)
             if self.is_running():
                 self.launched = True
@@ -67,11 +66,11 @@ class Process:
 
         # Force kill if stop time is passed or max retries are consumed.
         self.ensure_force_kill(stop_time)
-        #self.ensure_restart(auto_restart)
+        self.ensure_restart(auto_restart)
 
     def ensure_restart(self, auto_restart):
         if auto_restart == AutoRestart.NEVER:
-            
+            return
         self.execute()
 
     def ensure_force_kill(self, stop_time):
@@ -105,10 +104,10 @@ class Program:
     auto_start: bool = True
     auto_restart: AutoRestart = AutoRestart.UNEXPECTED
     exit_code: int = os.EX_OK
-    start_time: datetime.datetime = datetime.datetime.now()
+    start_time: int = 0
     max_retry: int = 0
     stop_signal: Signals = Signals.TERM
-    stop_time: datetime.datetime = datetime.datetime.now()
+    stop_time: int = 0
     cmd: str = ""
     working_dir: Optional[str] = ""
     stdout: str = ""
@@ -131,20 +130,18 @@ class Program:
             program_attribute = getattr(self, k, None)
             if program_attribute == None or k[0] == "_":
                 continue
-            setattr(self, k, v)
-            """
+            #setattr(self, k, v)
             value = self._validate_values(k, v)
             if isinstance(value, type(program_attribute)):
                 setattr(self, k, value)
             else:
                 raise TypeError(
-                    f"Invalid type for attribute {k} in TestProgram. Expected {type(program_attribute)}, got {type(k)}"
+                    f"Invalid type for attribute {k} in {self.name}. Expected {type(program_attribute)}, got {type(k)}"
                 )
-                """
 
     def _validate_values(self, name, value):
         if name == "start_time" or name == "stop_time":
-            return self._validate_date(value)
+            return self._validate_time(value)
         if name == "exit_code":
             return self._validate_exit_code(value)
         if name == "auto_restart":
@@ -153,11 +150,11 @@ class Program:
             return self._validate_stop_signal(value)
         return value
 
-    def _validate_date(self, value):
-        if isinstance(value, str):
-            return datetime.datetime.strptime(value, "%H:%M:%S %d-%m-%Y")
-        else:
-            raise ValueError("Date must be a string in format HH:MM:SS DD-MM-YYYY.")
+    def _validate_time(self, value):
+        try:
+            return int(value)
+        except:
+            raise ValueError(f"Invalid time format, expected int.")
 
     def _validate_exit_code(self, value):
         if isinstance(value, int):
