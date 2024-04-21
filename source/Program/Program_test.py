@@ -13,7 +13,7 @@ def valid_properties():
         "exit_code": 1,
         "max_retry": 3,
         "stop_signal": "HUP",
-        "stop_time": "00:00:00 20-09-2055",
+        "stop_time": "10",
         "cmd": "echo 'Hello, World!'",
         "working_dir": "/path/to/working_dir",
         "stdout": "stdout.log",

@@ -6,13 +6,13 @@ from logging import log
 
 
 class Process:
-    def __init__(self, name, cmd, start_time, end_time):
+    def __init__(self, name, cmd, end_time):
         self.name = name
         self.cmd = cmd
         self.nb_start_retries = 0
         self.popen = None
         self.kill_by_user = False
-        self.start_time = start_time
+        self.start_time = datetime.datetime
         self.end_time = end_time
         self.starttime = None
         self.closetime = None
@@ -60,14 +60,15 @@ class Process:
         if self.nb_start_retries > startretries or self.kill_by_user:
             return False
         if autorestart == AutoRestart.NEVER or startretries < 1:
-            return
+            return False
         if (
             autorestart == AutoRestart.UNEXPECTED
             and self.return_code_is_allowed(self.popen.poll(), exitcodes)
-            and self.lived_enough(starttime)
+            and self.lived_enough(self.starttime)
         ):
             return False
         self.execute()
+        return True
 
     def force_kill_if_needed(self, stoptime):
         if (
