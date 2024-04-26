@@ -92,8 +92,9 @@ class Process:
                 self.end_time = datetime.datetime.now()
 
         # Force kill if stop time is passed or max retries are consumed.
-        self.ensure_force_kill(stop_time)
-        self.ensure_restart(auto_restart, exit_codes, retries)
+        if self.exit_status():
+            self.ensure_force_kill(stop_time)
+            self.ensure_restart(auto_restart, exit_codes, retries)
 
     def ensure_restart(self, auto_restart, exit_codes, retries):
         if (
@@ -127,7 +128,7 @@ class Process:
             return False
 
     def restart(self):
-        if self.kill(signal.SIGKILL) or self.launched:
+        if self.kill(signal.SIGKILL) and self.launched:
             self.execute()
 
 

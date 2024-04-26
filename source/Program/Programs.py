@@ -44,7 +44,6 @@ class Programs:
                     continue
         except Exception as e:
             print(str(e))
-        print(self.programs_dict)
 
     def reload(self):
         try:

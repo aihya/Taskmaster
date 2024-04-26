@@ -26,19 +26,19 @@ class Interface(cmd.Cmd):
         """
         self.lock.acquire(True)
         for arg in args.split():
-            for program in self.programs.programs():
-                if program.name == arg:
-                    log.log(f"start {program.name}")
-                    program.execute()
+            if arg in self.programs.programs_dict:
+                program = self.programs.programs_dict[arg]
+                log.log(f"start {program.name}")
+                program.execute()
         self.lock.release()
 
     def do_stop(self, args):
         self.lock.acquire(True)
         for arg in args.split():
-            for program in self.programs.programs():
-                if program.name == arg:
-                    log.log(f"stop {program.name}")
-                    program.kill()
+            if arg in self.programs.programs_dict:
+                program = self.programs.programs_dict[arg]
+                log.log(f"stop {program.name}")
+                program.kill()
         self.lock.release()
 
     def do_status(self, args):
@@ -72,10 +72,10 @@ class Interface(cmd.Cmd):
         self.lock.acquire(True)
         if args:
             for arg in args.split():
-                for program in self.programs.programs():
-                    if program.name == arg:
-                        log.log(f"full_status: [program:{args[1]}]")
-                        program.full_status()
+                if arg in self.programs.programs_dict:
+                    program = self.programs.programs_dict[arg]
+                    log.log(f"full_status: [program:{args[1]}]")
+                    program.full_status()
         else:
             self.programs.full_status()
         self.lock.release()
@@ -84,12 +84,10 @@ class Interface(cmd.Cmd):
         self.lock.acquire(True)
         if args:
             for arg in args.split():
-                for program in self.programs.programs():
-                    if program.name == arg:
-                        program.restart()
-                        # program.kill()
-                        # program.execute()
-                        log.log(f"restart: [{program.name}]")
+                if arg in self.programs.programs_dict:
+                    program = self.programs.programs_dict[arg]
+                    program.restart()
+                    log.log(f"restart: [{program.name}]")
         self.lock.release()
 
     def do_full_restart(self, args):
