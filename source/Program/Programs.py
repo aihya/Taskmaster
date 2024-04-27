@@ -1,4 +1,5 @@
 from ast import Dict
+from io import BytesIO
 import yaml
 import os
 import sys
@@ -7,16 +8,23 @@ from Program import Program
 
 def load_config_file():
     files = sys.argv[1:]
-
-    if len(files) != 1:
+    full_stream = []
+    if len(files) == 0:
         print("Usage: ./taskmaster conf.yaml")
         exit(os.EX_OK)
 
     try:
-        with open(files[0], "r") as stream:
-            return yaml.safe_load(stream)
-    except FileNotFoundError:
-        ValueError(f"Configuration file ({files[0]}) not found")
+        print(files)
+        for file in files:
+            with open(file, "r") as stream:
+                full_stream.append(stream.read())
+        load_iter = yaml.safe_load_all("\n---\n".join(full_stream))
+        full_load = next(load_iter)
+        for itr in load_iter:
+            full_load.update(itr)
+        return full_load
+    except FileNotFoundError as e:
+        ValueError(f"{str(e)}")
     except Exception as E:
         ValueError(f"Can't parse configuration file ({files[0]}) due to:\n{E}")
 

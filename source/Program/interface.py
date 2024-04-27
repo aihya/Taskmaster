@@ -101,9 +101,12 @@ class Interface(cmd.Cmd):
         self.lock.release()
 
     def do_reload(self, args):
-        self.lock.acquire(True)
-        self.programs.reload()
-        self.lock.release()
+        try:
+            self.lock.acquire(True)
+            self.programs.reload()
+            self.lock.release()
+        except Exception as e:
+            print(f"\033[33mWarning:\033[0m error reloading ({str(e)})")
 
     def do_log(self, args):
         self.lock.acquire(True)

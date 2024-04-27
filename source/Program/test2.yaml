@@ -1,5 +1,5 @@
 a2:
-    cmd: "./a.out 3"
+    cmd: "./a.out 19"
     count: 1
     umask: 022
     working_dir: ./
@@ -8,7 +8,7 @@ a2:
     exit_codes: [0]
     retries: 3
     start_time: 5
-    stop_time: -5
+    stop_time: 5
     stop_signal: TERM
     stdout: mok.txt
     stderr: mok.txt
