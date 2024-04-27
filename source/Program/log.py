@@ -9,7 +9,7 @@ import datetime
 class Logger:
     _instance = None
 
-    def __new__(cls, log_identifier="MyLogger"):
+    def __new__(cls, log_identifier="Taskmaster"):
         if cls._instance is None:
             cls._instance = super(Logger, cls).__new__(cls)
             cls._instance.log_identifier = log_identifier
