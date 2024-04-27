@@ -1,10 +1,8 @@
 from ast import Dict
-from io import BytesIO
 import yaml
 import os
 import sys
-from Program import Program
-
+from program import Program
 
 def load_config_file():
     files = sys.argv[1:]
@@ -12,7 +10,6 @@ def load_config_file():
     if len(files) == 0:
         print("Usage: ./taskmaster conf.yaml")
         exit(os.EX_OK)
-
     try:
         print(files)
         for file in files:
@@ -28,8 +25,7 @@ def load_config_file():
     except Exception as E:
         ValueError(f"Can't parse configuration file ({files[0]}) due to:\n{E}")
 
-
-class Programs:
+class ProgramsManager:
 
     def __init__(self):
         self.programs_dict: Dict[str, Program] = {}
@@ -40,6 +36,7 @@ class Programs:
 
     def load(self):
         confs = load_config_file()
+        print(confs)
         if not confs:
             exit(os.EX_OK)
         for name, properties in confs.items():
@@ -78,10 +75,3 @@ class Programs:
         for _, program in self.programs_dict.items():
             if program.auto_start:
                 program.execute()
-
-    def force_kill(self, program):
-        program.kill()
-
-    def force_kill_all(self):
-        for _, program in self.programs_dict.items():
-            program.force_kill()

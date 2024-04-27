@@ -37,8 +37,8 @@ class Interface(cmd.Cmd):
         for arg in args.split():
             if arg in self.programs.programs_dict:
                 program = self.programs.programs_dict[arg]
-                log.log(f"stop {program.name}")
                 program.kill()
+                log.log(f"stop {program.name}")
         self.lock.release()
 
     def do_status(self, args):

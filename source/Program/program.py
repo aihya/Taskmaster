@@ -1,145 +1,12 @@
-import os
-import signal
 from typing import Dict, List, Optional, Any
 from enums import Signals, AutoRestart
-import subprocess
-import datetime
+from process import Process
 import log
-
-# import atexit -> define function to be executed at exit point.
-
-
-class Process:
-
-    def __init__(self, name, command):
-        self.printed = False
-        self.command = command
-        self.name = name
-        self.retries = 0
-        self.popen = None
-        self.launched = False
-        self.start_time = 0
-        self.end_time = None
-        self.kill_by_user = False
-
-    def is_running(self):
-        if self.popen:
-            return True if self.popen.poll() == None else False
-        return False
-
-    def set_popen_args(self, stdout, stderr, env, workingdir, umask):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.env = env
-        self.cwd = workingdir
-        self.umask = umask
-
-    def open_standard_files(self, file_name):
-        if not file_name:
-            return None
-        try:
-            return open(file_name, "a")
-        except Exception as e:
-            print(f"Standard file for {self.name} can't be opened because {e}.")
-            return None
-
-    def execute(self):
-        if self.is_running():
-            log.log(f"cannot start an already running process [pid:{self.popen.pid}]")
-            return
-        try:
-            print("Waaaaa akhona")
-            stdoutf = self.open_standard_files(self.stdout)
-            stderrf = self.open_standard_files(self.stderr)
-            print(stdoutf, stderrf)
-            self.kill_by_user = False
-            # self.retries += 1
-            self.popen = subprocess.Popen(
-                self.command,
-                shell=True,
-                stdout=stdoutf,
-                stderr=stderrf,
-                umask=self.umask,
-                env=self.env,
-                cwd=self.cwd,
-            )
-            if self.is_running():
-                self.launched = True
-                self.start_time = datetime.datetime.now()
-                self.end_time = None
-                log.log(
-                    f"execute({self.command})[pid:{self.popen.pid}][status:{self.popen.poll()}]"
-                )
-        except Exception as E:
-            self.popen = None
-            log.log(f"[{self.name}] execution failed: {E}")
-
-    def exit_status(self):
-        if self.launched:
-            return self.popen.poll()
-        return None
-
-    def elapsed_time(self):
-        """Represents the process's time to live"""
-        if self.launched:
-            if self.is_running():
-                return datetime.datetime.now() - self.start_time
-            return self.end_time - self.start_time
-        return self.end_time - self.start_time
-
-    def check(self, auto_restart, stop_time, exit_codes, starttime, retries):
-        if self.launched:
-            if self.exit_status() != None and self.end_time == None:
-                self.end_time = datetime.datetime.now()
-
-        # Force kill if stop time is passed or max retries are consumed.
-        if self.exit_status() is not None:
-            self.ensure_restart(auto_restart, exit_codes, retries)
-        else:
-            self.ensure_force_kill(stop_time)
-
-    def ensure_restart(self, auto_restart, exit_codes, retries):
-        if (
-            auto_restart == AutoRestart.NEVER
-            or self.retries > retries
-            or self.kill_by_user
-        ):
-            return
-        if auto_restart == AutoRestart.UNEXPECTED and self.exit_status() in exit_codes:
-            return
-        if self.exit_status() not in exit_codes:
-            self.retries += 1
-        self.execute()
-
-    def ensure_force_kill(self, stop_time):
-        if self.popen == None:
-            return
-        if self.end_time:
-            time_diff = datetime.datetime.now() - self.end_time
-            print("time_diff", time_diff, f" - [{stop_time}]")
-            if time_diff >= datetime.timedelta(seconds=stop_time):
-                log.log(f"force kill process: [pid:{self.popen.pid}]")
-                self.popen.kill()
-
-    def kill(self, stop_signal):
-        self.kill_by_user = True
-        if self.is_running():
-            log.log(f"kill process [pid:{self.popen.pid}]")
-            os.kill(self.popen.pid, stop_signal)
-            self.end_time = datetime.datetime.now()
-            return True
-        else:
-            return False
-
-    def restart(self):
-        if self.kill(signal.SIGKILL) and self.launched:
-            self.execute()
-
+import os
 
 class Program:
 
     name: str = ""
-
     count: int = 1
     auto_start: bool = True
     auto_restart: AutoRestart = AutoRestart.UNEXPECTED
@@ -158,7 +25,6 @@ class Program:
     config: Dict[str, any] = {}
 
     def __init__(self, name: str, properties: Dict[str, Any]):
-        print(f"Creating program: {name}")
         self.name = name
         self.processes = []
         self.env = {}
@@ -168,11 +34,9 @@ class Program:
         if not self.cmd:
             raise ValueError(f"Program {self.name} has no cmd attribute")
         self._create_processes(self.count)
-        print(f"Created program: {name} {len(self.processes)}")
 
     def _create_processes(self, count):
         procces_list = []
-        print("create processes: ", count)
         for _ in range(0, count):
             procces_list.append(Process(self.name, self.cmd))
         self.processes = procces_list
@@ -210,8 +74,6 @@ class Program:
         return self.env
 
     def _validate_values(self, name, value):
-        if name == "start_time" or name == "stop_time":
-            return self._validate_time(value)
         if name == "exit_code":
             return self._validate_exit_codes(value)
         if name == "auto_restart":
@@ -256,7 +118,6 @@ class Program:
         return Signals.from_str(value)
 
     def execute_processes(self, processes):
-        print("processes:", processes)
         for process in processes:
             process.set_popen_args(
                 stdout=self.stdout,
@@ -268,7 +129,6 @@ class Program:
             process.execute()
 
     def execute(self):
-        print("self.processes", self.processes)
         self.execute_processes(self.processes)
 
     def status(self):
@@ -297,14 +157,14 @@ class Program:
         for process in self.processes:
             if process.launched:
                 print(
-                    f"↳ {hex(id(process))}[pid:{process.popen.pid}]", end=""
+                    f"↳ {hex(id(process))} [pid:{process.popen.pid}]", end=""
                 )  # Print life spane of the process
                 if process.is_running():
                     print(f" \033[33mrunning\033[0m ({process.elapsed_time()})", end="")
-                elif process.exit_status() == 0:
-                    print(f" \033[32msuccess\033[0m ({process.elapsed_time()})", end="")
                 elif process.kill_by_user:
                     print(f" \033[34mstopped\033[0m ({process.elapsed_time()})", end="")
+                elif process.exit_status() == 0:
+                    print(f" \033[32msuccess\033[0m ({process.elapsed_time()})", end="")
                 elif process.exit_status():
                     exit_status = process.exit_status()
                     print(
@@ -329,7 +189,7 @@ class Program:
                 auto_restart=self.auto_restart,
                 stop_time=self.stop_time,
                 exit_codes=self.exit_codes,
-                starttime=self.start_time,
+                start_time=self.start_time,
                 retries=self.retries,
             )
 
@@ -346,12 +206,12 @@ class Program:
     def assign_count(self, count):
         self._validate_values("count", count)
 
-    def reload(self, count):
+    def reload(self):
         newps = []
         if len(self.processes) == self.count:
             return
         if len(self.processes) < self.count:
-            for x in range(0, (self.count - len(self.processes))):
+            for _ in range(0, (self.count - len(self.processes))):
                 newp = Process(self.name, self.cmd)
                 self.processes.append(newp)
                 newps.append(newp)

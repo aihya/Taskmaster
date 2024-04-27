@@ -3,8 +3,7 @@ import os
 import threading
 import interface
 import time
-import log
-from Programs import Programs
+from programsManager import ProgramsManager
 
 
 def check_programs(thread_lock, programs):
@@ -26,12 +25,12 @@ if __name__ == "__main__":
 
     lock = threading.Lock()
     try:
-        programs = Programs()
+        programs = ProgramsManager()
         programs.load()
         programs.launch()
+        daemon = threading.Thread(target=check_programs, args=(lock, programs), daemon=True)
+        daemon.start()
         interface.Interface(programs, lock).cmdloop()
     except Exception as e:
         print(f"\033[31m Error:\033[0m {str(e)}")
         exit(os.EX_OK)
-    daemon = threading.Thread(target=check_programs, args=(lock, programs), daemon=True)
-    daemon.start()
