@@ -1,5 +1,5 @@
 import cmd
-import log
+from log import logger as log
 
 
 class Interface(cmd.Cmd):
@@ -59,7 +59,6 @@ class Interface(cmd.Cmd):
             if found:
                 for name in found:
                     found[name].status()
-                print()
             if extra:
                 print(f'\033[33mprograms not found: {" ".join(set(extra))}\033[0m')
         else:
@@ -93,7 +92,7 @@ class Interface(cmd.Cmd):
     def do_full_restart(self, args):
         self.lock.acquire(True)
         if args:
-            print(f"full_restart don't take any arguments")
+            print(f"\033[33mWarning:\033[0m full_restart don't take any arguments")
         else:
             for program in self.programs.programs():
                 program.kill()
@@ -117,7 +116,7 @@ class Interface(cmd.Cmd):
                     print(line, end="")
                     line = log_file.readline()
         except FileNotFoundError:
-            raise (f"Warning: Log file not found.")
+            raise ValueError(f"Warning: Log file not found.")
         self.lock.release()
 
     def emptyline(self):

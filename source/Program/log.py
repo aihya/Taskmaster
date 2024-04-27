@@ -2,22 +2,22 @@ import datetime
 from sys import stderr
 
 
-def log(message):
-    with open("./log.txt", "a") as file:
-        current_time = str(datetime.datetime.now())
-        file.write(f"[{current_time}]: {message}\n")
+import syslog
+import datetime
 
 
-# class default
-# class Logger:
-#     sink = None
+class Logger:
+    _instance = None
 
-#     def __init__(self, sink) -> None:
-#         if sink != "stderr":
-#             self.sink = open(sink
-#         else:
-#             self.sink = stderr
+    def __new__(cls, log_identifier="MyLogger"):
+        if cls._instance is None:
+            cls._instance = super(Logger, cls).__new__(cls)
+            cls._instance.log_identifier = log_identifier
+        return cls._instance
 
-#     def log(message):
-#         current_time = str(datetime.datetime.now())
-#         print()
+    def log(self, message, log_level=syslog.LOG_INFO):
+        syslog.openlog(self.log_identifier)
+        syslog.syslog(log_level, message)
+
+
+logger = Logger()

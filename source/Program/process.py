@@ -1,9 +1,10 @@
 from enums import AutoRestart
-import log
+from log import logger as log
 import subprocess
 import datetime
 import signal
 import os
+
 
 class Process:
 
@@ -35,7 +36,9 @@ class Process:
         try:
             return open(file_name, "a")
         except Exception as e:
-            print(f"Standard file for {self.name} can't be opened because {e}.")
+            print(
+                f"\033[33mWarning:\033[0m Standard file for {self.name} can't be opened because {e}."
+            )
             return None
 
     def execute(self):
@@ -89,7 +92,7 @@ class Process:
     def lived_enough(self, start_time):
         if not self.start or not self.end or not start_time:
             return True
-        td = datetime.timedelta(seconds = start_time)
+        td = datetime.timedelta(seconds=start_time)
         if self.end - self.start <= td:
             return False
         return True
@@ -101,7 +104,11 @@ class Process:
             or self.kill_by_user
         ):
             return
-        if auto_restart == AutoRestart.UNEXPECTED and self.exit_status() in exit_codes and self.lived_enough(start_time):
+        if (
+            auto_restart == AutoRestart.UNEXPECTED
+            and self.exit_status() in exit_codes
+            and self.lived_enough(start_time)
+        ):
             return
         if self.exit_status() not in exit_codes:
             self.retries += 1

@@ -4,6 +4,7 @@ import os
 import sys
 from program import Program
 
+
 def load_config_file():
     files = sys.argv[1:]
     full_stream = []
@@ -11,7 +12,6 @@ def load_config_file():
         print("Usage: ./taskmaster conf.yaml")
         exit(os.EX_OK)
     try:
-        print(files)
         for file in files:
             with open(file, "r") as stream:
                 full_stream.append(stream.read())
@@ -25,6 +25,7 @@ def load_config_file():
     except Exception as E:
         ValueError(f"Can't parse configuration file ({files[0]}) due to:\n{E}")
 
+
 class ProgramsManager:
 
     def __init__(self):
@@ -36,8 +37,8 @@ class ProgramsManager:
 
     def load(self):
         confs = load_config_file()
-        print(confs)
         if not confs:
+            print("\033[31m Error:\033[0m empty config")
             exit(os.EX_OK)
         for name, properties in confs.items():
             new_program = Program(name, properties)

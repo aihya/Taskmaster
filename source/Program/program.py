@@ -1,8 +1,9 @@
 from typing import Dict, List, Optional, Any
 from enums import Signals, AutoRestart
 from process import Process
-import log
+from log import logger as log
 import os
+
 
 class Program:
 
@@ -156,9 +157,7 @@ class Program:
         self.status()
         for process in self.processes:
             if process.launched:
-                print(
-                    f"↳ {hex(id(process))} [pid:{process.popen.pid}]", end=""
-                )  # Print life spane of the process
+                print(f"↳ {hex(id(process))} [pid:{process.popen.pid}]", end="")
                 if process.is_running():
                     print(f" \033[33mrunning\033[0m ({process.elapsed_time()})", end="")
                 elif process.kill_by_user:
