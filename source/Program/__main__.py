@@ -1,4 +1,5 @@
 # from program.Programs import Programs
+import os
 import threading
 import interface
 import time
@@ -24,14 +25,13 @@ def check_programs(thread_lock, programs):
 if __name__ == "__main__":
 
     lock = threading.Lock()
-
-    # Creates Programs instance for parsing the YAML file and reading the programs.
-    programs = Programs()
-    programs.load()
-    programs.launch()
-
-    # Thread responsible for checking the state of the programs
+    try:
+        programs = Programs()
+        programs.load()
+        programs.launch()
+        interface.Interface(programs, lock).cmdloop()
+    except Exception as e:
+        print(f"\033[31m Error:\033[0m {str(e)}")
+        exit(os.EX_OK)
     daemon = threading.Thread(target=check_programs, args=(lock, programs), daemon=True)
     daemon.start()
-
-    interface.Interface(programs, lock).cmdloop()

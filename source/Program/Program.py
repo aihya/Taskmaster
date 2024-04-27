@@ -116,7 +116,7 @@ class Process:
             return
         if self.end_time:
             time_diff = datetime.datetime.now() - self.end_time
-            print('time_diff', time_diff, f' - [{stop_time}]')
+            print("time_diff", time_diff, f" - [{stop_time}]")
             if time_diff >= datetime.timedelta(seconds=stop_time):
                 log.log(f"force kill process: [pid:{self.popen.pid}]")
                 self.popen.kill()
@@ -220,6 +220,16 @@ class Program:
             return self._validate_stop_signal(value)
         if name == "env":
             return self._validate_env(value)
+        if name == "umask":
+            value = self._validate_umask(value)
+        if isinstance(value, int):
+            if value < 0:
+                raise ValueError(f"The {name} cannot be negative.")
+        return value
+
+    def _validate_umask(self, value):
+        if value > 0o777:
+            raise ValueError("The umask cannot be greater than 0777.")
         return value
 
     def _validate_time(self, value):
@@ -246,7 +256,7 @@ class Program:
         return Signals.from_str(value)
 
     def execute_processes(self, processes):
-        print('processes:', processes)
+        print("processes:", processes)
         for process in processes:
             process.set_popen_args(
                 stdout=self.stdout,
@@ -258,7 +268,7 @@ class Program:
             process.execute()
 
     def execute(self):
-        print('self.processes', self.processes)
+        print("self.processes", self.processes)
         self.execute_processes(self.processes)
 
     def status(self):
@@ -334,11 +344,10 @@ class Program:
         )
 
     def assign_count(self, count):
-        self._validate_type(count, "count", type(count))
+        self._validate_values("count", count)
 
-    def reload(self):
+    def reload(self, count):
         newps = []
-        print(len(self.processes), self.count)
         if len(self.processes) == self.count:
             return
         if len(self.processes) < self.count:

@@ -31,25 +31,18 @@ class Programs:
         return self.programs_dict.values()
 
     def load(self):
-        try:
-            confs = load_config_file()
-            if not confs:
-                exit(os.EX_OK)
-            for name, properties in confs.items():
-                try:
-                    new_program = Program(name, properties)
-                    self.programs_dict.update({new_program.name: new_program})
-                except Exception as e:
-                    print(str(e))
-                    continue
-        except Exception as e:
-            print(str(e))
+        confs = load_config_file()
+        if not confs:
+            exit(os.EX_OK)
+        for name, properties in confs.items():
+            new_program = Program(name, properties)
+            self.programs_dict.update({new_program.name: new_program})
 
     def reload(self):
-        try:
-            confs = load_config_file()
-            for name, config in confs.items():
-                if name in self.programs_dict:
+        confs = load_config_file()
+        for name, config in confs.items():
+            if name in self.programs_dict:
+                try:
                     if self.programs_dict[name].reload_has_substantive_change(config):
                         new_program = Program(name, config)
                         del self.programs_dict[name]
@@ -57,10 +50,13 @@ class Programs:
                     else:
                         self.programs_dict[name].assign_count(config["count"])
                         self.programs_dict[name].reload()
-                else:
-                    self.programs_dict[name] = Program(name, config)
-        except Exception as e:
-            print(str(e))
+                except Exception as e:
+                    print(
+                        f"\033[33mWarning:\033[0m error reloading config file for {name} ({str(e)})"
+                    )
+                    continue
+            else:
+                self.programs_dict[name] = Program(name, config)
 
     def status(self):
         for _, program in self.programs_dict.items():

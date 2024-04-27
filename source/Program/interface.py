@@ -7,8 +7,8 @@ class Interface(cmd.Cmd):
     prompt = "\033[1;32mTaskmaster > \033[0m"
 
     def __init__(self, programs, lock):
-        self.programs = programs
         self.lock = lock
+        self.programs = programs
         super().__init__()
 
     def do_EOF(self, args):
@@ -61,7 +61,6 @@ class Interface(cmd.Cmd):
                     found[name].status()
                 print()
             if extra:
-                log.log(f'programs not found: {" ".join(extra)}')
                 print(f'\033[33mprograms not found: {" ".join(set(extra))}\033[0m')
         else:
             self.programs.status()
@@ -81,13 +80,14 @@ class Interface(cmd.Cmd):
         self.lock.release()
 
     def do_restart(self, args):
+        if not args:
+            return
         self.lock.acquire(True)
-        if args:
-            for arg in args.split():
-                if arg in self.programs.programs_dict:
-                    program = self.programs.programs_dict[arg]
-                    program.restart()
-                    log.log(f"restart: [{program.name}]")
+        for arg in args.split():
+            if arg in self.programs.programs_dict:
+                program = self.programs.programs_dict[arg]
+                program.restart()
+                log.log(f"restart: [{program.name}]")
         self.lock.release()
 
     def do_full_restart(self, args):
@@ -114,7 +114,7 @@ class Interface(cmd.Cmd):
                     print(line, end="")
                     line = log_file.readline()
         except FileNotFoundError:
-            print(f"Warning: Log file not found.")
+            raise (f"Warning: Log file not found.")
         self.lock.release()
 
     def emptyline(self):
