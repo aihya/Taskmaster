@@ -12,6 +12,7 @@ import log
 class Process:
 
     def __init__(self, name, command):
+        self.printed = False
         self.command = command
         self.name = name
         self.retries = 0
@@ -52,7 +53,7 @@ class Process:
             stderrf = self.open_standard_files(self.stderr)
             print(stdoutf, stderrf)
             self.kill_by_user = False
-            self.retries += 1
+            # self.retries += 1
             self.popen = subprocess.Popen(
                 self.command,
                 shell=True,
@@ -92,9 +93,10 @@ class Process:
                 self.end_time = datetime.datetime.now()
 
         # Force kill if stop time is passed or max retries are consumed.
-        if self.exit_status():
-            self.ensure_force_kill(stop_time)
+        if self.exit_status() is not None:
             self.ensure_restart(auto_restart, exit_codes, retries)
+        else:
+            self.ensure_force_kill(stop_time)
 
     def ensure_restart(self, auto_restart, exit_codes, retries):
         if (
@@ -105,14 +107,16 @@ class Process:
             return
         if auto_restart == AutoRestart.UNEXPECTED and self.exit_status() in exit_codes:
             return
-        if self.exit_status() is not None:
-            self.execute()
+        if self.exit_status() not in exit_codes:
+            self.retries += 1
+        self.execute()
 
     def ensure_force_kill(self, stop_time):
         if self.popen == None:
             return
         if self.end_time:
             time_diff = datetime.datetime.now() - self.end_time
+            print('time_diff', time_diff, f' - [{stop_time}]')
             if time_diff >= datetime.timedelta(seconds=stop_time):
                 log.log(f"force kill process: [pid:{self.popen.pid}]")
                 self.popen.kill()
@@ -242,7 +246,7 @@ class Program:
         return Signals.from_str(value)
 
     def execute_processes(self, processes):
-        print(processes)
+        print('processes:', processes)
         for process in processes:
             process.set_popen_args(
                 stdout=self.stdout,
@@ -254,7 +258,7 @@ class Program:
             process.execute()
 
     def execute(self):
-        print(self.processes)
+        print('self.processes', self.processes)
         self.execute_processes(self.processes)
 
     def status(self):
