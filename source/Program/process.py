@@ -65,6 +65,7 @@ class Process:
                 shell=True,
                 stdout=stdoutf,
                 stderr=stderrf,
+                stdin=open("/dev/null", 'w'),
                 umask=self.umask,
                 env=self.env,
                 cwd=self.cwd,
@@ -103,7 +104,6 @@ class Process:
             self.ensure_force_kill(stop_time)
 
     def lived_enough(self, start_time):
-        print("allllo")
         if not self.start or not self.end or not start_time:
             return True
         td = datetime.timedelta(seconds=start_time)

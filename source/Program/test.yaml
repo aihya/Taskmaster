@@ -5,13 +5,27 @@ a2:
     working_dir: ./
     auto_start: true
     auto_restart: unexpected
-    exit_codes: [-10, 11, 12]
+    exit_codes: [0, -10, 11, 12]
     retries: 1
     start_time: 5
     stop_time: 2
     stop_signal: KILL
     stdout: out
     stderr: err
+    uid: 1001
+    gid: 1001
 
-
-
+a1:
+    cmd: "./a.out 3"
+    count: 3
+    umask: 022
+    working_dir: ./
+    auto_start: true
+    auto_restart: unexpected
+    exit_codes: [0, -10, 11, 12]
+    retries: 1
+    start_time: 5
+    stop_time: 2
+    stop_signal: KILL
+    stdout: out
+    stderr: err

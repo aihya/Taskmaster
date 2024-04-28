@@ -93,6 +93,10 @@ class Program:
             return self._validate_gid(value)
         if name == "umask":
             value = self._validate_umask(value)
+        if name == "stdout":
+            value = self._validate_stdfile(value) or self.stdout
+        if name == "stderr":
+            value = self._validate_stdfile(value) or self.stderr
         if isinstance(value, int):
             if value < 0:
                 raise ValueError(f"The {name} cannot be negative.")
@@ -140,6 +144,13 @@ class Program:
     def _validate_stop_signal(self, value):
         return Signals.from_str(value)
 
+    def _validate_stdfile(self, value):
+        try:
+            file = open(value, 'w')
+            return value
+        except Exception as E:
+            print(f"\033[33mWarning:\033[0m output to file [{value}] will be discarded.")
+
     def execute_processes(self, processes):
         for process in processes:
             process.set_popen_args(
@@ -148,6 +159,8 @@ class Program:
                 env=self.env,
                 umask=self.umask,
                 workingdir=self.working_dir,
+                uid=self.uid,
+                gid=self.gid,
             )
             process.execute()
 
@@ -180,6 +193,7 @@ class Program:
             return
         self.status()
         for process in self.processes:
+            process.check(self.auto_restart, self.stop_time, self.exit_codes, self.start_time, self.retries)
             if process.launched:
                 print(f"↳ {hex(id(process))} [pid:{process.popen.pid}]", end="")
                 if process.is_running():
