@@ -24,12 +24,21 @@ class Process:
             return True if self.popen.poll() == None else False
         return False
 
-    def set_popen_args(self, stdout, stderr, env, workingdir, umask):
+    def demote(self, user_uid, user_gid):
+        def result():
+            os.setgid(user_gid)
+            os.setuid(user_uid)
+
+        return result
+
+    def set_popen_args(self, stdout, stderr, env, workingdir, umask, uid, gid):
         self.stdout = stdout
         self.stderr = stderr
         self.env = env
         self.cwd = workingdir
         self.umask = umask
+        self.uid = uid
+        self.gid = gid
 
     def open_standard_files(self, file_name):
         if not file_name:
@@ -49,7 +58,6 @@ class Process:
         try:
             stdoutf = self.open_standard_files(self.stdout)
             stderrf = self.open_standard_files(self.stderr)
-            # TODO!!!!!: validate standard files 
             self.kill_by_user = False
             self.start = self.end = datetime.datetime.now()
             self.popen = subprocess.Popen(
@@ -60,13 +68,12 @@ class Process:
                 umask=self.umask,
                 env=self.env,
                 cwd=self.cwd,
+                preexec_fn=self.demote(self.uid, self.gid),
             )
             if self.is_running():
                 self.launched = True
                 self.end = None
-                log.log(
-                    f"execute({self.command})[pid:{self.popen.pid}]"
-                )
+                log.log(f"execute({self.command})[pid:{self.popen.pid}]")
         except Exception as E:
             self.popen = None
             log.log(f"[{self.name}] execution failed: {E}")
@@ -87,14 +94,16 @@ class Process:
             if self.exit_status() != None and self.end == None:
                 self.end = datetime.datetime.now()
                 if self.exit_status() not in exit_codes:
-                    log.log(f'process[pid:{self.popen.pid}] stopped unexpectedly [code:{self.exit_status()}]')
+                    log.log(
+                        f"process[pid:{self.popen.pid}] stopped unexpectedly [code:{self.exit_status()}]"
+                    )
         if self.exit_status() is not None:
             self.ensure_restart(auto_restart, exit_codes, retries, start_time)
         else:
             self.ensure_force_kill(stop_time)
 
     def lived_enough(self, start_time):
-        print('allllo')
+        print("allllo")
         if not self.start or not self.end or not start_time:
             return True
         td = datetime.timedelta(seconds=start_time)

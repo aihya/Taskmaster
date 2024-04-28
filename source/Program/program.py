@@ -2,6 +2,8 @@ from typing import Dict, List, Optional, Any
 from enums import Signals, AutoRestart
 from process import Process
 from log import logger as log
+import grp
+import pwd
 import os
 
 
@@ -9,6 +11,8 @@ class Program:
 
     name: str = ""
     count: int = 1
+    uid: int = os.getuid()
+    gid: int = os.getgid()
     auto_start: bool = True
     auto_restart: AutoRestart = AutoRestart.UNEXPECTED
     exit_codes: int = [os.EX_OK]
@@ -83,6 +87,10 @@ class Program:
             return self._validate_stop_signal(value)
         if name == "env":
             return self._validate_env(value)
+        if name == "uid":
+            return self._validate_uid(value)
+        if name == "gid":
+            return self._validate_gid(value)
         if name == "umask":
             value = self._validate_umask(value)
         if isinstance(value, int):
@@ -111,6 +119,20 @@ class Program:
                     value_list.append(value)
                     continue
             raise ValueError("Exit code value should be an intiger between 0 and 255")
+
+    def _validate_uid(self, uid):
+        try:
+            pwd.getpwuid(uid).pw_name
+            return uid
+        except KeyError:
+            return ValueError("The UID is not a valid user id.")
+
+    def _validate_gid(self, gid):
+        try:
+            grp.getgrgid(gid).gr_name
+            return gid
+        except KeyError:
+            return ValueError("The GID is not a valid group id.")
 
     def _validate_auto_restart(self, value):
         return AutoRestart.from_str(value)
@@ -165,7 +187,10 @@ class Program:
                 elif process.kill_by_user:
                     print(f" \033[34mstopped\033[0m ({process.elapsed_time()})", end="")
                 elif process.exit_status() in self.exit_codes:
-                    print(f" \033[32msuccess\033[0m ({process.elapsed_time()}) [code:{process.exit_status()}]", end="")
+                    print(
+                        f" \033[32msuccess\033[0m ({process.elapsed_time()}) [code:{process.exit_status()}]",
+                        end="",
+                    )
                 elif process.exit_status() not in self.exit_codes:
                     exit_status = process.exit_status()
                     print(
