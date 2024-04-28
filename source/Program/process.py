@@ -125,7 +125,7 @@ class Process:
         ):
             return
         es = self.exit_status()
-        if es is not None and es not in exit_codes:
+        if (es is not None and es not in exit_codes) or not self.lived_enough(start_time):
             self.retries += 1
             if self.retries > retries:
                 log.log(f"max retries reached [pid:{self.popen.pid}]")

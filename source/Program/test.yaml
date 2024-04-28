@@ -24,7 +24,7 @@ a1:
     auto_restart: unexpected
     exit_codes: [0, -10, 11, 12]
     retries: 1
-    start_time: 5
+    start_time: 2
     stop_time: 2
     stop_signal: KILL
     stdout: out
