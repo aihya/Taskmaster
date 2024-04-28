@@ -49,6 +49,7 @@ class Process:
         try:
             stdoutf = self.open_standard_files(self.stdout)
             stderrf = self.open_standard_files(self.stderr)
+            # TODO!!!!!: validate standard files 
             self.kill_by_user = False
             self.start = self.end = datetime.datetime.now()
             self.popen = subprocess.Popen(
@@ -64,7 +65,7 @@ class Process:
                 self.launched = True
                 self.end = None
                 log.log(
-                    f"execute({self.command})[pid:{self.popen.pid}][status:{self.popen.poll()}]"
+                    f"execute({self.command})[pid:{self.popen.pid}]"
                 )
         except Exception as E:
             self.popen = None
@@ -85,12 +86,15 @@ class Process:
         if self.launched:
             if self.exit_status() != None and self.end == None:
                 self.end = datetime.datetime.now()
+                if self.exit_status() not in exit_codes:
+                    log.log(f'process[pid:{self.popen.pid}] stopped unexpectedly [code:{self.exit_status()}]')
         if self.exit_status() is not None:
             self.ensure_restart(auto_restart, exit_codes, retries, start_time)
         else:
             self.ensure_force_kill(stop_time)
 
     def lived_enough(self, start_time):
+        print('allllo')
         if not self.start or not self.end or not start_time:
             return True
         td = datetime.timedelta(seconds=start_time)
@@ -101,8 +105,8 @@ class Process:
     def ensure_restart(self, auto_restart, exit_codes, retries, start_time):
         if (
             auto_restart == AutoRestart.NEVER
-            or self.retries > retries
             or self.kill_by_user
+            or self.retries > retries
         ):
             return
         if (
@@ -111,8 +115,12 @@ class Process:
             and self.lived_enough(start_time)
         ):
             return
-        if self.exit_status() not in exit_codes:
+        es = self.exit_status()
+        if es is not None and es not in exit_codes:
             self.retries += 1
+            if self.retries > retries:
+                log.log(f"max retries reached [pid:{self.popen.pid}]")
+                return
         self.execute()
 
     def ensure_force_kill(self, stop_time):
@@ -121,20 +129,18 @@ class Process:
         if self.end:
             time_diff = datetime.datetime.now() - self.end
             if time_diff >= datetime.timedelta(seconds=stop_time):
-                log.log(f"force kill process: [pid:{self.popen.pid}]")
                 self.popen.kill()
 
     def kill(self, stop_signal, killed_by_user=True):
         self.kill_by_user = killed_by_user
-        log.log(f"is_running {self.is_running()}")
         if self.is_running():
-            log.log(f"kill process [pid:{self.popen.pid}]")
             os.kill(self.popen.pid, stop_signal)
             while self.popen.poll() == None:
                 time.sleep(0.01)
             self.end = datetime.datetime.now()
 
     def restart(self):
+        log.log(f"restart process [{self.name}]")
         self.kill(signal.SIGKILL, False)
         self.retries = 0
         self.execute()

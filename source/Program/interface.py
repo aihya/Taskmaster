@@ -53,7 +53,6 @@ class Interface(cmd.Cmd):
 
     def do_status(self, args):
         self.lock.acquire(True)
-        log.log(f"status {args}")
 
         if args:
             found = {}
@@ -65,7 +64,6 @@ class Interface(cmd.Cmd):
                         break
                 if arg not in found.keys():
                     extra.append(arg)
-
             if found:
                 for name in found:
                     found[name].status()
@@ -82,7 +80,6 @@ class Interface(cmd.Cmd):
             for arg in args.split():
                 if arg in self.programs.programs_dict:
                     program = self.programs.programs_dict[arg]
-                    log.log(f"full_status: [program:{args[1]}]")
                     program.full_status()
         else:
             self.programs.full_status()
@@ -113,9 +110,9 @@ class Interface(cmd.Cmd):
         try:
             self.lock.acquire(True)
             self.programs.reload()
-            self.lock.release()
         except Exception as e:
             print(f"\033[33mWarning:\033[0m error reloading ({str(e)})")
+        self.lock.release()
 
     def do_log(self, args):
         self.lock.acquire(True)

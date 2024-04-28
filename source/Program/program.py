@@ -18,8 +18,8 @@ class Program:
     stop_time: int = 0
     cmd: str = ""
     working_dir: Optional[str] = ""
-    stdout: str = ""
-    stderr: str = ""
+    stdout: str = "/dev/null"
+    stderr: str = "/dev/null"
     umask: int = 22
     processes: List[Process] = []
     env: Dict[str, str] = {}
@@ -134,7 +134,8 @@ class Program:
 
     def status(self):
         if not self.processes:
-            return "No processes created."
+            print(f"\033[33mWarning:\033[0m no process found")
+            return
         r, o, k, l, s = 0, 0, 0, 0, 0
         for process in self.processes:
             if process.launched:
@@ -153,7 +154,8 @@ class Program:
 
     def full_status(self):
         if not self.processes:
-            return "No processes created."
+            print(f"\033[33mWarning:\033[0m no processes found")
+            return
         self.status()
         for process in self.processes:
             if process.launched:
@@ -162,12 +164,12 @@ class Program:
                     print(f" \033[33mrunning\033[0m ({process.elapsed_time()})", end="")
                 elif process.kill_by_user:
                     print(f" \033[34mstopped\033[0m ({process.elapsed_time()})", end="")
-                elif process.exit_status() == 0:
-                    print(f" \033[32msuccess\033[0m ({process.elapsed_time()})", end="")
-                elif process.exit_status():
+                elif process.exit_status() in self.exit_codes:
+                    print(f" \033[32msuccess\033[0m ({process.elapsed_time()}) [code:{process.exit_status()}]", end="")
+                elif process.exit_status() not in self.exit_codes:
                     exit_status = process.exit_status()
                     print(
-                        f" \033[31mfailed\033[0m [code:{exit_status}] ({process.elapsed_time()})",
+                        f" \033[31mfailed\033[0m  ({process.elapsed_time()}) [code:{exit_status}]",
                         end="",
                     )
                 print()
@@ -178,10 +180,9 @@ class Program:
             process.restart()
 
     def kill(self):
-        log.log(f"kill program [{self.name}]")
         for process in self.processes:
-            log.log(f"cool {process}")
-            process.kill(self.stop_signal)
+            if process.is_running():
+                process.kill(self.stop_signal)
 
     def check(self):
         for process in self.processes:
@@ -204,7 +205,7 @@ class Program:
         )
 
     def assign_count(self, count):
-        self._validate_values("count", count)
+        self.count = self._validate_values("count", count)
 
     def reload(self):
         newps = []
@@ -219,7 +220,7 @@ class Program:
             del self.processes
             self._create_processes(self.count)
             self.execute()
-            # return
+            return
 
         if self.auto_start:
             self.execute_processes(newps)
