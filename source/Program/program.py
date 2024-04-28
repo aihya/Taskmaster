@@ -10,6 +10,7 @@ import os
 class Program:
 
     name: str = ""
+    cmd: str = ""
     count: int = 1
     uid: int = os.getuid()
     gid: int = os.getgid()
@@ -20,8 +21,7 @@ class Program:
     retries: int = 0
     stop_signal: Signals = Signals.TERM
     stop_time: int = 0
-    cmd: str = ""
-    working_dir: Optional[str] = ""
+    working_dir: Optional[str] = "./"
     stdout: str = "/dev/null"
     stderr: str = "/dev/null"
     umask: int = 22
@@ -30,6 +30,8 @@ class Program:
     config: Dict[str, any] = {}
 
     def __init__(self, name: str, properties: Dict[str, Any]):
+        if not properties:
+            raise ValueError("Cannot create program with no properties.")
         self.name = name
         self.processes = []
         self.env = {}
@@ -78,7 +80,15 @@ class Program:
                 raise ValueError(f"Invalid type for env variable {k}.")
         return self.env
 
+    def _validate_string(self, name, value):
+        value = value.strip()
+        if not value:
+            raise ValueError(f"The property {name} cannot be empty.")
+        return value
+
     def _validate_values(self, name, value):
+        if isinstance(value, str):
+            return self._validate_string(name, value)
         if name == "exit_code":
             return self._validate_exit_codes(value)
         if name == "auto_restart":
@@ -234,6 +244,8 @@ class Program:
             )
 
     def reload_has_substantive_change(self, new_config):
+        if not new_config:
+            raise ValueError("Cannot create program with no properties.")
         return any(
             [
                 getattr(self, k, None) is not None

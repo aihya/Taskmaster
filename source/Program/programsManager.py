@@ -22,8 +22,6 @@ def load_config_file():
         for itr in load_iter:
             full_load.update(itr)
         return full_load
-    except FileNotFoundError as e:
-        raise ValueError(f"{str(e)}")
     except Exception as E:
         raise ValueError(f"Can't parse configuration file ({files[0]})")
 

@@ -114,17 +114,5 @@ class Interface(cmd.Cmd):
             print(f"\033[33mWarning:\033[0m error reloading ({str(e)})")
         self.lock.release()
 
-    def do_log(self, args):
-        self.lock.acquire(True)
-        try:
-            with open("./log.txt", "r") as log_file:
-                line = log_file.readline()
-                while line:
-                    print(line, end="")
-                    line = log_file.readline()
-        except FileNotFoundError:
-            raise ValueError(f"Warning: Log file not found.")
-        self.lock.release()
-
     def emptyline(self):
         pass
