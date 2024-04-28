@@ -112,6 +112,8 @@ class Process:
         return True
 
     def ensure_restart(self, auto_restart, exit_codes, retries, start_time):
+        if auto_restart == AutoRestart.ALWAYS:
+            return self.execute()
         if (
             auto_restart == AutoRestart.NEVER
             or self.kill_by_user
