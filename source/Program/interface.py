@@ -1,4 +1,5 @@
 import cmd
+import signal
 from log import logger as log
 
 
@@ -9,7 +10,16 @@ class Interface(cmd.Cmd):
     def __init__(self, programs, lock):
         self.lock = lock
         self.programs = programs
+        signal.signal(signal.SIGINT, self.sigint_handler)
+        signal.signal(signal.SIGHUP, self.sighup_handler)
         super().__init__()
+
+    def sigint_handler(self, signal, frame):
+        log.log("stopping taskmaster")
+        exit(0)
+
+    def sighup_handler(self, signal, frame):
+        self.do_reload(None)
 
     def do_EOF(self, args):
         return True

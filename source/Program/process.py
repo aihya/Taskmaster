@@ -1,3 +1,4 @@
+import time
 from enums import AutoRestart
 from log import logger as log
 import subprocess
@@ -125,9 +126,12 @@ class Process:
 
     def kill(self, stop_signal, killed_by_user=True):
         self.kill_by_user = killed_by_user
+        log.log(f"is_running {self.is_running()}")
         if self.is_running():
             log.log(f"kill process [pid:{self.popen.pid}]")
             os.kill(self.popen.pid, stop_signal)
+            while self.popen.poll() == None:
+                time.sleep(0.01)
             self.end = datetime.datetime.now()
 
     def restart(self):

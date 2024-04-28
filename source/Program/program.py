@@ -180,6 +180,7 @@ class Program:
     def kill(self):
         log.log(f"kill program [{self.name}]")
         for process in self.processes:
+            log.log(f"cool {process}")
             process.kill(self.stop_signal)
 
     def check(self):
@@ -218,7 +219,7 @@ class Program:
             del self.processes
             self._create_processes(self.count)
             self.execute()
-            return
+            # return
 
         if self.auto_start:
             self.execute_processes(newps)
