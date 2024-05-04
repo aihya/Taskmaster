@@ -1,6 +1,12 @@
-/bin/sh: 1: ./a.out: Permission denied
-/bin/sh: 1: ./a.out: Permission denied
-/bin/sh: 1: ./a.out: Permission denied
-/bin/sh: 1: ./a.out: Permission denied
-/bin/sh: 1: ./a.out: Permission denied
-/bin/sh: 1: ./a.out: Permission denied
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)
+Segmentation fault (core dumped)

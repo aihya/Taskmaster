@@ -1,3 +1,7 @@
-a2:
-    count: 1
-    cmd: ""
+main:
+    count: 5
+    cmd: "./main 6 0"
+
+segv:
+  count: 3
+  cmd: "./segv 6"

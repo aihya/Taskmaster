@@ -7,6 +7,14 @@
 
 int main(int argc, char **argv, char** envp)
 {
-	sleep(atoi(argv[1]));
-	return (atoi(argv[2]));
+	int i = 0;
+	int j = atoi(argv[1]);
+	char *p;
+	sleep(j);
+	while (i < 50000)
+	{
+		p = argv[i];
+		i++;
+	}
+	return (0);
 }
