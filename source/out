@@ -1,0 +1,140 @@
+total 80
+drwxr-xr-x  19 root root  4096 May  4 14:14 .
+drwxr-xr-x  19 root root  4096 May  4 14:14 ..
+lrwxrwxrwx   1 root root     7 May  4 13:45 bin -> usr/bin
+drwxr-xr-x   3 root root  4096 May  4 14:16 boot
+drwx------   2 root root  4096 May  4 14:14 .cache
+drwxr-xr-x  18 root root  3320 May  4 18:09 dev
+drwxr-xr-x 124 root root 12288 May  4 18:08 etc
+drwxr-xr-x   3 root root  4096 May  4 14:16 home
+lrwxrwxrwx   1 root root    30 May  4 14:09 initrd.img -> boot/initrd.img-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    30 May  4 13:45 initrd.img.old -> boot/initrd.img-6.1.0-18-amd64
+lrwxrwxrwx   1 root root     7 May  4 13:45 lib -> usr/lib
+lrwxrwxrwx   1 root root     9 May  4 13:45 lib64 -> usr/lib64
+drwx------   2 root root 16384 May  4 13:44 lost+found
+drwxr-xr-x   3 root root  4096 May  4 13:44 media
+drwxr-xr-x   2 root root  4096 May  4 13:45 mnt
+drwxr-xr-x   2 root root  4096 May  4 13:45 opt
+dr-xr-xr-x 259 root root     0 May  4 18:07 proc
+drwx------   4 root root  4096 May  4 14:22 root
+drwxr-xr-x  26 root root   680 May  4 18:59 run
+lrwxrwxrwx   1 root root     8 May  4 13:45 sbin -> usr/sbin
+drwxr-xr-x   2 root root  4096 May  4 13:45 srv
+dr-xr-xr-x  13 root root     0 May  4 18:07 sys
+drwxrwxrwt  17 root root  4096 May  4 18:09 tmp
+drwxr-xr-x  12 root root  4096 May  4 13:45 usr
+drwxr-xr-x  11 root root  4096 May  4 13:45 var
+lrwxrwxrwx   1 root root    27 May  4 14:09 vmlinuz -> boot/vmlinuz-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    27 May  4 13:45 vmlinuz.old -> boot/vmlinuz-6.1.0-18-amd64
+total 80
+drwxr-xr-x  19 root root  4096 May  4 14:14 .
+drwxr-xr-x  19 root root  4096 May  4 14:14 ..
+lrwxrwxrwx   1 root root     7 May  4 13:45 bin -> usr/bin
+drwxr-xr-x   3 root root  4096 May  4 14:16 boot
+drwx------   2 root root  4096 May  4 14:14 .cache
+drwxr-xr-x  18 root root  3320 May  4 18:09 dev
+drwxr-xr-x 124 root root 12288 May  4 18:08 etc
+drwxr-xr-x   3 root root  4096 May  4 14:16 home
+lrwxrwxrwx   1 root root    30 May  4 14:09 initrd.img -> boot/initrd.img-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    30 May  4 13:45 initrd.img.old -> boot/initrd.img-6.1.0-18-amd64
+lrwxrwxrwx   1 root root     7 May  4 13:45 lib -> usr/lib
+lrwxrwxrwx   1 root root     9 May  4 13:45 lib64 -> usr/lib64
+drwx------   2 root root 16384 May  4 13:44 lost+found
+drwxr-xr-x   3 root root  4096 May  4 13:44 media
+drwxr-xr-x   2 root root  4096 May  4 13:45 mnt
+drwxr-xr-x   2 root root  4096 May  4 13:45 opt
+dr-xr-xr-x 260 root root     0 May  4 18:07 proc
+drwx------   4 root root  4096 May  4 14:22 root
+drwxr-xr-x  26 root root   680 May  4 18:59 run
+lrwxrwxrwx   1 root root     8 May  4 13:45 sbin -> usr/sbin
+drwxr-xr-x   2 root root  4096 May  4 13:45 srv
+dr-xr-xr-x  13 root root     0 May  4 18:07 sys
+drwxrwxrwt  17 root root  4096 May  4 18:09 tmp
+drwxr-xr-x  12 root root  4096 May  4 13:45 usr
+drwxr-xr-x  11 root root  4096 May  4 13:45 var
+lrwxrwxrwx   1 root root    27 May  4 14:09 vmlinuz -> boot/vmlinuz-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    27 May  4 13:45 vmlinuz.old -> boot/vmlinuz-6.1.0-18-amd64
+total 80
+drwxr-xr-x  19 root root  4096 May  4 14:14 .
+drwxr-xr-x  19 root root  4096 May  4 14:14 ..
+lrwxrwxrwx   1 root root     7 May  4 13:45 bin -> usr/bin
+drwxr-xr-x   3 root root  4096 May  4 14:16 boot
+drwx------   2 root root  4096 May  4 14:14 .cache
+drwxr-xr-x  18 root root  3320 May  4 18:09 dev
+drwxr-xr-x 124 root root 12288 May  4 18:08 etc
+drwxr-xr-x   3 root root  4096 May  4 14:16 home
+lrwxrwxrwx   1 root root    30 May  4 14:09 initrd.img -> boot/initrd.img-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    30 May  4 13:45 initrd.img.old -> boot/initrd.img-6.1.0-18-amd64
+lrwxrwxrwx   1 root root     7 May  4 13:45 lib -> usr/lib
+lrwxrwxrwx   1 root root     9 May  4 13:45 lib64 -> usr/lib64
+drwx------   2 root root 16384 May  4 13:44 lost+found
+drwxr-xr-x   3 root root  4096 May  4 13:44 media
+drwxr-xr-x   2 root root  4096 May  4 13:45 mnt
+drwxr-xr-x   2 root root  4096 May  4 13:45 opt
+dr-xr-xr-x 261 root root     0 May  4 18:07 proc
+drwx------   4 root root  4096 May  4 14:22 root
+drwxr-xr-x  26 root root   680 May  4 18:59 run
+lrwxrwxrwx   1 root root     8 May  4 13:45 sbin -> usr/sbin
+drwxr-xr-x   2 root root  4096 May  4 13:45 srv
+dr-xr-xr-x  13 root root     0 May  4 18:07 sys
+drwxrwxrwt  17 root root  4096 May  4 18:09 tmp
+drwxr-xr-x  12 root root  4096 May  4 13:45 usr
+drwxr-xr-x  11 root root  4096 May  4 13:45 var
+lrwxrwxrwx   1 root root    27 May  4 14:09 vmlinuz -> boot/vmlinuz-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    27 May  4 13:45 vmlinuz.old -> boot/vmlinuz-6.1.0-18-amd64
+total 80
+drwxr-xr-x  19 root root  4096 May  4 14:14 .
+drwxr-xr-x  19 root root  4096 May  4 14:14 ..
+lrwxrwxrwx   1 root root     7 May  4 13:45 bin -> usr/bin
+drwxr-xr-x   3 root root  4096 May  4 14:16 boot
+drwx------   2 root root  4096 May  4 14:14 .cache
+drwxr-xr-x  18 root root  3320 May  4 18:09 dev
+drwxr-xr-x 124 root root 12288 May  4 18:08 etc
+drwxr-xr-x   3 root root  4096 May  4 14:16 home
+lrwxrwxrwx   1 root root    30 May  4 14:09 initrd.img -> boot/initrd.img-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    30 May  4 13:45 initrd.img.old -> boot/initrd.img-6.1.0-18-amd64
+lrwxrwxrwx   1 root root     7 May  4 13:45 lib -> usr/lib
+lrwxrwxrwx   1 root root     9 May  4 13:45 lib64 -> usr/lib64
+drwx------   2 root root 16384 May  4 13:44 lost+found
+drwxr-xr-x   3 root root  4096 May  4 13:44 media
+drwxr-xr-x   2 root root  4096 May  4 13:45 mnt
+drwxr-xr-x   2 root root  4096 May  4 13:45 opt
+dr-xr-xr-x 262 root root     0 May  4 18:07 proc
+drwx------   4 root root  4096 May  4 14:22 root
+drwxr-xr-x  26 root root   680 May  4 18:59 run
+lrwxrwxrwx   1 root root     8 May  4 13:45 sbin -> usr/sbin
+drwxr-xr-x   2 root root  4096 May  4 13:45 srv
+dr-xr-xr-x  13 root root     0 May  4 18:07 sys
+drwxrwxrwt  17 root root  4096 May  4 18:09 tmp
+drwxr-xr-x  12 root root  4096 May  4 13:45 usr
+drwxr-xr-x  11 root root  4096 May  4 13:45 var
+lrwxrwxrwx   1 root root    27 May  4 14:09 vmlinuz -> boot/vmlinuz-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    27 May  4 13:45 vmlinuz.old -> boot/vmlinuz-6.1.0-18-amd64
+total 80
+drwxr-xr-x  19 root root  4096 May  4 14:14 .
+drwxr-xr-x  19 root root  4096 May  4 14:14 ..
+lrwxrwxrwx   1 root root     7 May  4 13:45 bin -> usr/bin
+drwxr-xr-x   3 root root  4096 May  4 14:16 boot
+drwx------   2 root root  4096 May  4 14:14 .cache
+drwxr-xr-x  18 root root  3320 May  4 18:09 dev
+drwxr-xr-x 124 root root 12288 May  4 18:08 etc
+drwxr-xr-x   3 root root  4096 May  4 14:16 home
+lrwxrwxrwx   1 root root    30 May  4 14:09 initrd.img -> boot/initrd.img-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    30 May  4 13:45 initrd.img.old -> boot/initrd.img-6.1.0-18-amd64
+lrwxrwxrwx   1 root root     7 May  4 13:45 lib -> usr/lib
+lrwxrwxrwx   1 root root     9 May  4 13:45 lib64 -> usr/lib64
+drwx------   2 root root 16384 May  4 13:44 lost+found
+drwxr-xr-x   3 root root  4096 May  4 13:44 media
+drwxr-xr-x   2 root root  4096 May  4 13:45 mnt
+drwxr-xr-x   2 root root  4096 May  4 13:45 opt
+dr-xr-xr-x 258 root root     0 May  4 18:07 proc
+drwx------   4 root root  4096 May  4 14:22 root
+drwxr-xr-x  26 root root   680 May  4 18:59 run
+lrwxrwxrwx   1 root root     8 May  4 13:45 sbin -> usr/sbin
+drwxr-xr-x   2 root root  4096 May  4 13:45 srv
+dr-xr-xr-x  13 root root     0 May  4 18:07 sys
+drwxrwxrwt  17 root root  4096 May  4 18:09 tmp
+drwxr-xr-x  12 root root  4096 May  4 13:45 usr
+drwxr-xr-x  11 root root  4096 May  4 13:45 var
+lrwxrwxrwx   1 root root    27 May  4 14:09 vmlinuz -> boot/vmlinuz-6.1.0-20-amd64
+lrwxrwxrwx   1 root root    27 May  4 13:45 vmlinuz.old -> boot/vmlinuz-6.1.0-18-amd64
